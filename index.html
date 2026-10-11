@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pixel Studio Pro</title>
 <style>
   @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -48,6 +49,7 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     letter-spacing: -0.01em;
   }
@@ -55,21 +57,21 @@
   header {
     background: rgba(18, 20, 29, 0.9);
     backdrop-filter: blur(16px);
-    padding: 10px 20px;
+    padding: 10px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border-subtle);
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
     z-index: 30;
   }
 
-  .brand-area { display: flex; align-items: center; gap: 14px; }
+  .brand-area { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
   .brand-title {
     font-weight: 800;
-    font-size: 18px;
+    font-size: 17px;
     background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -91,15 +93,16 @@
 
   .nav-tabs {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     background: var(--bg-base);
     padding: 4px;
     border-radius: 10px;
     border: 1px solid var(--border-subtle);
+    overflow-x: auto;
   }
 
   .nav-tab {
-    padding: 6px 13px;
+    padding: 6px 11px;
     border-radius: 7px;
     font-size: 12px;
     font-weight: 700;
@@ -107,6 +110,7 @@
     cursor: pointer;
     border: none;
     background: transparent;
+    white-space: nowrap;
     transition: all 0.2s var(--ease-spring);
   }
 
@@ -132,7 +136,7 @@
     font-family: monospace;
     background: rgba(99, 102, 241, 0.12);
     color: #a5b4fc;
-    padding: 4px 10px;
+    padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid rgba(99, 102, 241, 0.3);
   }
@@ -150,6 +154,7 @@
     align-content: start;
     border-right: 1px solid var(--border-subtle);
     overflow-y: auto;
+    flex-shrink: 0;
   }
 
   .tool-btn {
@@ -168,7 +173,6 @@
   .tool-btn:hover {
     background: var(--bg-elevated);
     color: var(--text-main);
-    transform: translateY(-2px);
   }
 
   .tool-btn.active {
@@ -187,6 +191,7 @@
     gap: 8px;
     overflow-y: auto;
     border-right: 1px solid var(--border-subtle);
+    flex-shrink: 0;
   }
 
   .frame-item {
@@ -198,6 +203,7 @@
     position: relative;
     text-align: center;
     transition: all 0.2s var(--ease-spring);
+    flex-shrink: 0;
   }
 
   .frame-item.active {
@@ -210,20 +216,37 @@
 
   .frame-badge {
     position: absolute;
-    top: 8px;
-    left: 10px;
-    background: rgba(0, 0, 0, 0.7);
+    top: 6px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.75);
     color: #fff;
     font-size: 10px;
     font-weight: 700;
-    padding: 2px 6px;
+    padding: 2px 5px;
     border-radius: 5px;
     pointer-events: none;
   }
 
+  .frame-move-btns {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .frame-move-btns button {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    color: #ccc;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
   .frame-item canvas {
-    width: 86px;
-    height: 86px;
+    width: 82px;
+    height: 82px;
     border-radius: 6px;
     image-rendering: pixelated;
     background: repeating-conic-gradient(#222533 0% 25%, #191c26 0% 50%) 50% / 10px 10px;
@@ -238,16 +261,19 @@
     background: radial-gradient(circle at center, #161925 0%, #090a0f 100%);
     position: relative;
     overflow: auto;
+    padding: 12px;
   }
 
   .canvas-wrapper {
     position: relative;
-    width: 560px;
-    height: 560px;
+    width: min(560px, 88vw);
+    height: min(560px, 88vw);
     background: repeating-conic-gradient(#e5e7eb 0% 25%, #ffffff 0% 50%) 50% / 16px 16px;
     border-radius: 6px;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.1);
     cursor: crosshair;
+    touch-action: none;
+    flex-shrink: 0;
   }
 
   .canvas-wrapper canvas {
@@ -270,6 +296,7 @@
     gap: 14px;
     overflow-y: auto;
     border-left: 1px solid var(--border-subtle);
+    flex-shrink: 0;
   }
 
   .panel-box {
@@ -300,13 +327,14 @@
     gap: 8px;
     font-size: 12px;
     color: var(--text-muted);
+    flex-wrap: wrap;
   }
 
   button.action-btn {
     background: var(--bg-elevated);
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: var(--text-main);
-    padding: 7px 12px;
+    padding: 7px 11px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 12px;
@@ -316,7 +344,6 @@
 
   button.action-btn:hover:not(:disabled) {
     background: #2f3447;
-    transform: translateY(-1px);
   }
 
   button.action-btn:disabled {
@@ -373,7 +400,7 @@
   }
 
   select:focus, input:focus, textarea:focus { border-color: var(--border-focus); }
-  input[type="number"] { width: 65px; }
+  input[type="number"] { width: 62px; }
 
   input[type="color"] {
     -webkit-appearance: none;
@@ -434,6 +461,7 @@
     position: relative;
     border: 2px solid rgba(255, 255, 255, 0.12);
     cursor: crosshair;
+    touch-action: none;
   }
 
   #sunDot {
@@ -458,6 +486,7 @@
     justify-content: center;
     align-items: center;
     z-index: 200;
+    padding: 16px;
   }
 
   .modal-backdrop.open { display: flex; }
@@ -466,18 +495,18 @@
     background: var(--bg-panel);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 18px;
-    padding: 24px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85);
-    min-width: 420px;
+    width: min(440px, 94vw);
     align-items: center;
   }
 
   #largePreviewCanvas {
-    width: 384px;
-    height: 384px;
+    width: min(360px, 80vw);
+    height: min(360px, 80vw);
     border-radius: 12px;
     image-rendering: pixelated;
     background: repeating-conic-gradient(#222533 0% 25%, #191c26 0% 50%) 50% / 20px 20px;
@@ -491,15 +520,15 @@
     align-items: center;
     background: radial-gradient(circle at 50% 30%, #1e1b4b 0%, #090a0f 70%);
     overflow-y: auto;
-    padding: 24px;
+    padding: 20px;
   }
 
   .auth-card {
-    width: 420px;
+    width: min(420px, 94vw);
     background: rgba(25, 28, 40, 0.92);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
-    padding: 30px;
+    padding: 26px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -532,14 +561,14 @@
   .gallery-container {
     flex: 1;
     overflow-y: auto;
-    padding: 28px 36px;
+    padding: 24px;
     background: radial-gradient(circle at top, #171a29 0%, #090a0f 100%);
   }
 
   .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
     margin-top: 20px;
   }
 
@@ -552,12 +581,6 @@
     flex-direction: column;
     gap: 10px;
     position: relative;
-    transition: all 0.25s var(--ease-spring);
-  }
-
-  .art-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--accent-primary);
   }
 
   .art-canvas-wrap {
@@ -574,7 +597,6 @@
     image-rendering: pixelated;
     background: repeating-conic-gradient(#222533 0% 25%, #191c26 0% 50%) 50% / 14px 14px;
     pointer-events: none;
-    transition: filter 0.3s ease;
   }
 
   .art-shield {
@@ -668,13 +690,13 @@
 
   #toast {
     position: fixed;
-    bottom: 28px;
+    bottom: 24px;
     left: 50%;
     transform: translateX(-50%) translateY(20px) scale(0.95);
     background: rgba(25, 28, 40, 0.95);
     border: 1px solid rgba(99, 102, 241, 0.5);
     color: #fff;
-    padding: 10px 22px;
+    padding: 10px 20px;
     border-radius: 999px;
     font-size: 13px;
     font-weight: 600;
@@ -682,11 +704,57 @@
     transition: all 0.3s var(--ease-spring);
     pointer-events: none;
     z-index: 999;
+    white-space: nowrap;
   }
 
   #toast.show {
     opacity: 1;
     transform: translateX(-50%) translateY(0) scale(1);
+  }
+
+  /* 스마트폰 및 태블릿 반응형 레이아웃 */
+  @media (max-width: 960px) {
+    body {
+      height: auto;
+      min-height: 100dvh;
+      overflow-y: auto;
+    }
+    .view-section {
+      overflow: visible;
+    }
+    #viewDraw.active {
+      flex-direction: column;
+    }
+    .toolbar {
+      width: 100%;
+      grid-template-columns: repeat(5, 1fr);
+      border-right: none;
+      border-bottom: 1px solid var(--border-subtle);
+      max-height: none;
+    }
+    .frames-panel {
+      width: 100%;
+      flex-direction: row;
+      align-items: center;
+      overflow-x: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    #framesList {
+      flex-direction: row !important;
+    }
+    .canvas-area {
+      min-height: 94vw;
+      padding: 16px 8px;
+    }
+    .right-panel {
+      width: 100%;
+      border-left: none;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .route-badge {
+      display: none;
+    }
   }
 </style>
 </head>
@@ -696,17 +764,16 @@
   <div class="brand-area">
     <div class="brand-title" onclick="navigateTo('/draw')">Pixel Studio Pro</div>
     <div class="nav-tabs">
-      <button class="nav-tab active" id="tabDraw" onclick="navigateTo('/draw')">🎨 그리기 (/draw)</button>
-      <button class="nav-tab" id="tabGallery" onclick="navigateTo('/gallery')">🌐 갤러리 (/gallery)</button>
-      <button class="nav-tab" id="tabProfile" onclick="navigateTo('/profile')">🪪 내 프로필 (/profile)</button>
-      <button class="nav-tab" id="tabLogin" onclick="navigateTo('/login')">🔑 로그인 (/login)</button>
+      <button class="nav-tab active" id="tabDraw" onclick="navigateTo('/draw')">🎨 그리기</button>
+      <button class="nav-tab" id="tabGallery" onclick="navigateTo('/gallery')">🌐 갤러리</button>
+      <button class="nav-tab" id="tabProfile" onclick="navigateTo('/profile')">🪪 프로필</button>
+      <button class="nav-tab" id="tabLogin" onclick="navigateTo('/login')">🔑 로그인</button>
       <button class="nav-tab admin-tab" id="tabAdmin" style="display:none;" onclick="navigateTo('/admin')">🛡️ 관리자</button>
     </div>
     <span class="route-badge" id="routeDisplay">/draw</span>
   </div>
 
   <div class="row" id="drawHeaderControls">
-    <span>프리셋</span>
     <select id="presetSizeSelect">
       <option value="16">16 x 16</option>
       <option value="32" selected>32 x 32</option>
@@ -723,7 +790,7 @@
     <button class="action-btn" id="onionBtn">어니언</button>
     <input type="file" id="importInput" accept="image/*" style="display:none;">
     <button class="action-btn" id="importBtn">불러오기</button>
-    <button class="action-btn primary-btn" id="openPublishModalBtn">🌐 작품 내보내기 / 공유</button>
+    <button class="action-btn primary-btn" id="openPublishModalBtn">🌐 내보내기 / 공유</button>
   </div>
 
   <div class="row">
@@ -752,27 +819,22 @@
     <div class="tool-btn" data-tool="picker">스포이드</div>
     <div class="tool-btn" data-tool="select">영역선택</div>
 
-    <div style="grid-column: span 2; margin-top:8px; border-top:1px solid var(--border-subtle); padding-top:12px;">
-      <div class="row"><span>주 색상</span><input type="color" id="primaryColor" value="#6366f1"></div>
-      <div class="row" style="margin-top:6px;"><span>부 색상</span><input type="color" id="secondaryColor" value="#ffffff"></div>
-      <div class="row" style="margin-top:10px;">
+    <div style="grid-column: 1 / -1; margin-top:6px; border-top:1px solid var(--border-subtle); padding-top:10px;">
+      <div class="row">
+        <span>주 색상 <input type="color" id="primaryColor" value="#6366f1"></span>
+        <span>부 색상 <input type="color" id="secondaryColor" value="#ffffff"></span>
         <span>두께: <b id="brushSizeVal" style="color:#fff;">1</b></span>
       </div>
       <input type="range" id="brushSize" min="1" max="10" value="1" style="width:100%; margin-top:6px;">
-      <div style="margin-top:12px; font-size:11px; color:var(--text-muted); line-height:1.55;">
-        💡 <b style="color:#e5e7eb;">단축키 안내</b><br>
-        • 선택 후 <b>Delete / Backspace</b>: 선택 영역 삭제<br>
-        • 프레임 <b>드래그</b>: 순서 이동<br>
-        • 바깥 클릭 / <b>ESC</b>: 선택 취소
-      </div>
     </div>
   </div>
 
   <div class="frames-panel">
-    <button class="action-btn primary-btn" id="addFrameBtn">+ 프레임 추가</button>
-    <button class="action-btn" id="dupFrameBtn">프레임 복제</button>
-    <button class="action-btn" id="delFrameBtn">프레임 삭제</button>
-    <div style="font-size:11px; color:var(--text-muted); text-align:center;">↕ 드래그하여 순서 변경</div>
+    <div style="display:flex; flex-direction:column; gap:6px; flex-shrink:0;">
+      <button class="action-btn primary-btn" id="addFrameBtn">+ 프레임 추가</button>
+      <button class="action-btn" id="dupFrameBtn">프레임 복제</button>
+      <button class="action-btn" id="delFrameBtn">프레임 삭제</button>
+    </div>
     <div id="framesList" style="display:flex; flex-direction:column; gap:8px; margin-top:2px;"></div>
   </div>
 
@@ -803,7 +865,7 @@
     <div class="panel-box">
       <div class="panel-title">선택 영역 제어 & 색상 변경</div>
       <div class="row">
-        <button class="action-btn danger-btn" id="deleteSelectionBtn" style="flex:1;">🗑️ 선택 영역 삭제 (Del)</button>
+        <button class="action-btn danger-btn" id="deleteSelectionBtn" style="flex:1;">🗑️ 선택 영역 삭제</button>
         <button class="action-btn" id="clearSelectBtn">선택 해제</button>
       </div>
       <div class="row" style="margin-top:4px;">
@@ -896,7 +958,7 @@
 <!-- /profile 뷰 -->
 <div class="view-section" id="viewProfile">
   <div class="login-container">
-    <div class="auth-card" style="width:460px;">
+    <div class="auth-card">
       <div style="display:flex; align-items:center; gap:14px;">
         <div id="profileAvatarPreview" class="avatar-circle" style="width:56px; height:56px; font-size:22px; background:#6366f1;">P</div>
         <div>
@@ -932,12 +994,12 @@
 <!-- /gallery 뷰 -->
 <div class="view-section" id="viewGallery">
   <div class="gallery-container">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
       <div>
         <h2 style="font-size:22px; font-weight:800;">🌐 커뮤니티 도트 갤러리</h2>
         <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">유저들이 직접 그리고 공유한 도트 작품을 감상해보세요.</p>
       </div>
-      <button class="action-btn primary-btn" onclick="navigateTo('/draw')">+ 새 작품 그리러 가기 (/draw)</button>
+      <button class="action-btn primary-btn" onclick="navigateTo('/draw')">+ 새 작품 그리러 가기</button>
     </div>
     <div class="gallery-grid" id="galleryGrid"></div>
   </div>
@@ -954,9 +1016,9 @@
       <button class="action-btn" onclick="loadAdminOverview()">🔄 새로고침</button>
     </div>
 
-    <div style="display:grid; grid-template-columns: 1fr 360px; gap:20px;">
-      <div class="panel-box">
-        <div class="panel-title">👥 전체 가입 유저 목록 (계정 밴 & IP 차단)</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+      <div class="panel-box" style="overflow-x:auto;">
+        <div class="panel-title">👥 전체 가입 유저 목록</div>
         <table class="admin-table">
           <thead>
             <tr>
@@ -985,7 +1047,7 @@
 
 <!-- 내보내기 및 커뮤니티 공유 전용 모달 창 -->
 <div class="modal-backdrop" id="publishModal">
-  <div class="modal-card" style="width:460px; align-items:stretch;">
+  <div class="modal-card" style="align-items:stretch;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <div style="font-weight:800; font-size:17px;">📦 작품 내보내기 & 커뮤니티 공유</div>
       <button class="action-btn" onclick="closePublishModal()">✕ 닫기</button>
@@ -1012,7 +1074,7 @@
 
     <div style="display:flex; gap:10px; margin-top:6px;">
       <button class="action-btn primary-btn" style="flex:1; padding:12px;" onclick="submitShareToGallery()">🌐 갤러리에 공유하기</button>
-      <button class="action-btn" style="flex:1; padding:12px;" onclick="downloadPngFromModal()">💾 내 PC에 PNG 저장</button>
+      <button class="action-btn" style="flex:1; padding:12px;" onclick="downloadPngFromModal()">💾 PNG 파일 저장</button>
     </div>
   </div>
 </div>
@@ -1022,7 +1084,7 @@
   <div class="modal-card">
     <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
       <div style="font-weight:800; font-size:16px;" id="largeModalTitle">애니메이션 크게 보기</div>
-      <button class="action-btn" id="closeModalBtn">✕ 닫기 (ESC)</button>
+      <button class="action-btn" id="closeModalBtn">✕ 닫기</button>
     </div>
     <canvas id="largePreviewCanvas" width="32" height="32"></canvas>
     <div id="largeModalDesc" style="font-size:12px; color:var(--text-muted); max-width:380px; text-align:center;"></div>
@@ -1037,7 +1099,7 @@
 
 <!-- 구글 계정 연동 모달 -->
 <div class="modal-backdrop" id="googleModal">
-  <div class="modal-card" style="min-width:380px; align-items:stretch;">
+  <div class="modal-card" style="align-items:stretch;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <div style="font-weight:800; font-size:16px;">Google 이메일 계정 연동</div>
       <button class="action-btn" onclick="closeGoogleModal()">✕</button>
@@ -1063,7 +1125,6 @@
 <div id="toast">알림</div>
 
 <script>
-/* 우클릭 및 이미지 드래그/복사 원천 차단 */
 window.addEventListener('contextmenu', e => e.preventDefault());
 window.addEventListener('dragstart', e => {
   if (e.target.tagName === 'CANVAS' || e.target.tagName === 'IMG') {
@@ -1132,7 +1193,6 @@ function showToast(msg) {
   t._timer = setTimeout(() => { t.classList.remove('show'); }, 2200);
 }
 
-/* 서버 토큰 기반 세션 검증 (DevTools 조작 원천 차단) */
 async function verifySessionFromServer() {
   if (!authToken) {
     currentUser = null;
@@ -1358,7 +1418,6 @@ function handleLogout() {
   navigateTo('/login');
 }
 
-/* ---------------- 내보내기 & 공유 모달 ---------------- */
 document.getElementById('openPublishModalBtn').onclick = () => {
   document.getElementById('publishTitleInput').value = currentUser ? `${currentUser.username}의 도트 작품` : '나만의 도트 작품';
   document.getElementById('publishDescInput').value = '';
@@ -1429,7 +1488,6 @@ async function submitShareToGallery() {
   }
 }
 
-/* ---------------- 갤러리 렌더링 (좋아요 토글 & 편집 권한 제어) ---------------- */
 async function fetchGalleryFromServer() {
   try {
     const res = await fetch('/api/gallery', { headers: authHeaders() });
@@ -1469,7 +1527,6 @@ function renderGallery() {
 
     const shield = document.createElement('div');
     shield.className = 'art-shield';
-    shield.title = '클릭하여 크게 감상하기';
     shield.onclick = () => {
       if (art.censored && !isAdmin()) {
         return showToast('검열(블라인드) 처리된 게시물입니다');
@@ -1609,7 +1666,6 @@ function loadArtFromGallery(idx) {
   showToast(`'${art.title}' 작품을 에디터로 불러왔습니다`);
 }
 
-/* ---------------- 관리자 대시보드 ---------------- */
 async function loadAdminOverview() {
   if (!isAdmin()) return;
   try {
@@ -1628,7 +1684,7 @@ async function loadAdminOverview() {
         </td>
         <td>${u.email || '-'}</td>
         <td style="font-family:monospace; color:#a5b4fc;">${u.ip || '-'}</td>
-        <td>${u.banned ? '<span style="color:#ef4444;font-weight:700;">정지됨(Banned)</span>' : '<span style="color:#34d399;">정상</span>'}</td>
+        <td>${u.banned ? '<span style="color:#ef4444;font-weight:700;">정지됨</span>' : '<span style="color:#34d399;">정상</span>'}</td>
         <td style="display:flex; gap:6px;">
           ${u.username !== 'sunnywp82' ? `
             <button class="action-btn ${u.banned ? '' : 'danger-btn'}" onclick="adminToggleUserBan('${u.username}', ${!u.banned})">
@@ -1709,7 +1765,6 @@ async function adminToggleCensorArt(artId) {
   fetchGalleryFromServer();
 }
 
-/* ---------------- 선택 영역 해제 및 삭제 ---------------- */
 function clearSelection(notify = false) {
   if (!selection) return;
   selection = null;
@@ -1742,16 +1797,19 @@ function deleteSelectedArea() {
 document.getElementById('deleteSelectionBtn').onclick = deleteSelectedArea;
 document.getElementById('clearSelectBtn').onclick = () => clearSelection(true);
 
-window.addEventListener('mousedown', e => {
+function handleOutsideClear(target) {
   if (!selection) return;
-  const inCanvas = wrapper.contains(e.target);
-  const inRightPanel = e.target.closest('.right-panel');
-  const inHeader = e.target.closest('header');
-  const inModal = e.target.closest('.modal-backdrop');
+  const inCanvas = wrapper.contains(target);
+  const inRightPanel = target.closest('.right-panel');
+  const inHeader = target.closest('header');
+  const inModal = target.closest('.modal-backdrop');
   if (!inCanvas && !inRightPanel && !inHeader && !inModal) {
     clearSelection(true);
   }
-});
+}
+
+window.addEventListener('mousedown', e => handleOutsideClear(e.target));
+window.addEventListener('touchstart', e => handleOutsideClear(e.target), { passive: true });
 
 function openPreviewModal() {
   modalViewingFrames = null;
@@ -1862,6 +1920,15 @@ function doRedo() {
   }
 }
 
+function moveFrameOrder(fromIdx, toIdx) {
+  if (toIdx < 0 || toIdx >= frames.length || fromIdx === toIdx) return;
+  saveHistory();
+  const moved = frames.splice(fromIdx, 1)[0];
+  frames.splice(toIdx, 0, moved);
+  currentFrame = toIdx;
+  renderAll();
+}
+
 function renderFramesUI() {
   const list = document.getElementById('framesList');
   list.innerHTML = '';
@@ -1879,6 +1946,18 @@ function renderFramesUI() {
     c.width = size; c.height = size;
     compositeFrame(idx, c.getContext('2d'));
     div.appendChild(c);
+
+    const moveBtns = document.createElement('div');
+    moveBtns.className = 'frame-move-btns';
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '◀';
+    prevBtn.onclick = e => { e.stopPropagation(); moveFrameOrder(idx, idx - 1); };
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '▶';
+    nextBtn.onclick = e => { e.stopPropagation(); moveFrameOrder(idx, idx + 1); };
+    moveBtns.appendChild(prevBtn);
+    moveBtns.appendChild(nextBtn);
+    div.appendChild(moveBtns);
 
     div.onclick = () => { currentFrame = idx; sunBackup = null; renderAll(); };
 
@@ -1906,13 +1985,8 @@ function renderFramesUI() {
       e.preventDefault();
       div.classList.remove('drag-over');
       if (draggedFrameIdx === null || draggedFrameIdx === idx) return;
-      saveHistory();
-      const movedFrame = frames.splice(draggedFrameIdx, 1)[0];
-      frames.splice(idx, 0, movedFrame);
-      currentFrame = idx;
+      moveFrameOrder(draggedFrameIdx, idx);
       draggedFrameIdx = null;
-      renderAll();
-      showToast(`프레임을 #${idx + 1} 위치로 이동했습니다`);
     });
 
     list.appendChild(div);
@@ -2153,20 +2227,31 @@ function replaceAllSameColor(buf, sx, sy, tr, tg, tb, ta) {
   }
 }
 
+/* 마우스 & 모바일 터치 좌표 통합 계산 */
+function getClientXY(e) {
+  if (e.touches && e.touches.length > 0) {
+    return [e.touches[0].clientX, e.touches[0].clientY];
+  }
+  if (e.changedTouches && e.changedTouches.length > 0) {
+    return [e.changedTouches[0].clientX, e.changedTouches[0].clientY];
+  }
+  return [e.clientX, e.clientY];
+}
+
 function getCoords(e) {
   const rect = wrapper.getBoundingClientRect();
-  const x = Math.floor(((e.clientX - rect.left) / rect.width) * size);
-  const y = Math.floor(((e.clientY - rect.top) / rect.height) * size);
+  const [cx, cy] = getClientXY(e);
+  const x = Math.floor(((cx - rect.left) / rect.width) * size);
+  const y = Math.floor(((cy - rect.top) / rect.height) * size);
   return [Math.max(0, Math.min(size - 1, x)), Math.max(0, Math.min(size - 1, y))];
 }
 
-wrapper.addEventListener('mousedown', e => {
+function handlePointerStart(e, isRight = false) {
   const [x, y] = getCoords(e);
   isDrawing = true;
   startX = x; startY = y;
   lastX = x; lastY = y;
   sunBackup = null;
-  const isRight = e.button === 2;
   const buf = getActiveBuffer();
 
   if (['pen', 'eraser', 'dither', 'mirror', 'lighten', 'darken'].includes(currentTool)) {
@@ -2208,12 +2293,11 @@ wrapper.addEventListener('mousedown', e => {
     drawSelectionOverlay();
     drawGrid();
   }
-});
+}
 
-window.addEventListener('mousemove', e => {
+function handlePointerMove(e, isRight = false) {
   if (!isDrawing) return;
   const [x, y] = getCoords(e);
-  const isRight = (e.buttons & 2) === 2;
   const buf = getActiveBuffer();
 
   if (['pen', 'eraser', 'dither', 'mirror', 'lighten', 'darken'].includes(currentTool)) {
@@ -2249,9 +2333,9 @@ window.addEventListener('mousemove', e => {
     drawSelectionOverlay();
     drawGrid();
   }
-});
+}
 
-window.addEventListener('mouseup', () => {
+function handlePointerEnd() {
   if (!isDrawing) return;
   isDrawing = false;
   if (['line', 'rect', 'circle'].includes(currentTool)) {
@@ -2266,7 +2350,27 @@ window.addEventListener('mouseup', () => {
     previewCtx.clearRect(0, 0, size, size);
   }
   renderAll();
-});
+}
+
+/* 마우스 이벤트 연결 */
+wrapper.addEventListener('mousedown', e => handlePointerStart(e, e.button === 2));
+window.addEventListener('mousemove', e => handlePointerMove(e, (e.buttons & 2) === 2));
+window.addEventListener('mouseup', handlePointerEnd);
+
+/* 모바일 터치 이벤트 연결 */
+wrapper.addEventListener('touchstart', e => {
+  e.preventDefault();
+  handlePointerStart(e, false);
+}, { passive: false });
+
+window.addEventListener('touchmove', e => {
+  if (!isDrawing) return;
+  e.preventDefault();
+  handlePointerMove(e, false);
+}, { passive: false });
+
+window.addEventListener('touchend', handlePointerEnd);
+window.addEventListener('touchcancel', handlePointerEnd);
 
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
@@ -2372,15 +2476,17 @@ document.getElementById('applyRecolorBtn').onclick = () => {
   showToast('명암 유지 색상 변경 완료');
 };
 
+/* 태양 조명 패드 (마우스 & 터치 지원) */
 const sunPad = document.getElementById('sunPad');
 const sunDot = document.getElementById('sunDot');
 let movingSun = false;
 
 function updateSunFromEvent(e) {
   const rect = sunPad.getBoundingClientRect();
+  const [clientX, clientY] = getClientXY(e);
   const cx = rect.width / 2, cy = rect.height / 2;
-  let dx = (e.clientX - rect.left - cx) / cx;
-  let dy = (e.clientY - rect.top - cy) / cy;
+  let dx = (clientX - rect.left - cx) / cx;
+  let dy = (clientY - rect.top - cy) / cy;
   const mag = Math.hypot(dx, dy);
   if (mag > 1) { dx /= mag; dy /= mag; }
   sunPos = { x: dx, y: dy };
@@ -2392,6 +2498,20 @@ function updateSunFromEvent(e) {
 sunPad.addEventListener('mousedown', e => { movingSun = true; updateSunFromEvent(e); });
 window.addEventListener('mousemove', e => { if (movingSun) updateSunFromEvent(e); });
 window.addEventListener('mouseup', () => { movingSun = false; });
+
+sunPad.addEventListener('touchstart', e => {
+  e.preventDefault();
+  movingSun = true;
+  updateSunFromEvent(e);
+}, { passive: false });
+
+window.addEventListener('touchmove', e => {
+  if (!movingSun) return;
+  e.preventDefault();
+  updateSunFromEvent(e);
+}, { passive: false });
+
+window.addEventListener('touchend', () => { movingSun = false; });
 
 function previewSunShading() {
   if (!sunBackup) sunBackup = new Uint8ClampedArray(getActiveBuffer());
