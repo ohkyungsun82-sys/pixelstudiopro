@@ -15,7 +15,6 @@
     --border-focus: #6366f1;
     --accent-primary: #6366f1;
     --accent-glow: rgba(99, 102, 241, 0.35);
-    --admin-gold: #f59e0b;
     --danger: #ef4444;
     --text-main: #f3f4f6;
     --text-muted: #9ca3af;
@@ -25,9 +24,17 @@
   * {
     box-sizing: border-box;
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
     margin: 0;
     padding: 0;
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  canvas, img {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    user-select: none;
   }
 
   ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -307,15 +314,26 @@
     transition: all 0.2s var(--ease-spring);
   }
 
-  button.action-btn:hover {
+  button.action-btn:hover:not(:disabled) {
     background: #2f3447;
     transform: translateY(-1px);
+  }
+
+  button.action-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 
   button.primary-btn {
     background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
     border-color: #818cf8;
     color: #fff;
+  }
+
+  button.liked-btn {
+    background: rgba(236, 72, 153, 0.2);
+    border-color: #ec4899;
+    color: #f472b6;
   }
 
   button.danger-btn {
@@ -342,9 +360,7 @@
     padding: 11px;
   }
 
-  button.google-btn:hover { background: #f3f4f6; }
-
-  select, input[type="number"], input[type="text"], input[type="password"], input[type="email"] {
+  select, input[type="number"], input[type="text"], input[type="password"], input[type="email"], textarea {
     background: var(--bg-base);
     color: var(--text-main);
     border: 1px solid var(--border-subtle);
@@ -352,9 +368,11 @@
     border-radius: 8px;
     font-size: 12px;
     outline: none;
+    user-select: text;
+    -webkit-user-select: text;
   }
 
-  select:focus, input:focus { border-color: var(--border-focus); }
+  select:focus, input:focus, textarea:focus { border-color: var(--border-focus); }
   input[type="number"] { width: 65px; }
 
   input[type="color"] {
@@ -520,7 +538,7 @@
 
   .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
     margin-top: 20px;
   }
@@ -555,8 +573,15 @@
     height: 100%;
     image-rendering: pixelated;
     background: repeating-conic-gradient(#222533 0% 25%, #191c26 0% 50%) 50% / 14px 14px;
-    cursor: pointer;
+    pointer-events: none;
     transition: filter 0.3s ease;
+  }
+
+  .art-shield {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    cursor: pointer;
   }
 
   .art-card.censored .art-canvas-wrap canvas {
@@ -566,11 +591,12 @@
   .censor-overlay {
     position: absolute;
     inset: 0;
+    z-index: 6;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0, 0, 0, 0.65);
     color: #fca5a5;
     font-size: 12px;
     font-weight: 800;
@@ -622,6 +648,24 @@
     background: rgba(0, 0, 0, 0.25);
   }
 
+  .toggle-switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-base);
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+  }
+
+  .toggle-switch input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+  }
+
   #toast {
     position: fixed;
     bottom: 28px;
@@ -656,19 +700,12 @@
       <button class="nav-tab" id="tabGallery" onclick="navigateTo('/gallery')">🌐 갤러리 (/gallery)</button>
       <button class="nav-tab" id="tabProfile" onclick="navigateTo('/profile')">🪪 내 프로필 (/profile)</button>
       <button class="nav-tab" id="tabLogin" onclick="navigateTo('/login')">🔑 로그인 (/login)</button>
-      <button class="nav-tab admin-tab" id="tabAdmin" style="display:none;" onclick="navigateTo('/admin')">🛡️ 관리자 (/admin)</button>
+      <button class="nav-tab admin-tab" id="tabAdmin" style="display:none;" onclick="navigateTo('/admin')">🛡️ 관리자</button>
     </div>
     <span class="route-badge" id="routeDisplay">/draw</span>
   </div>
 
   <div class="row" id="drawHeaderControls">
-    <select id="templateSelect">
-      <option value="">✨ 기본 아트워크 선택...</option>
-      <option value="slime">바운싱 킹 슬라임 (4프레임)</option>
-      <option value="sword">타오르는 마법검 (4프레임)</option>
-      <option value="potion">회복 포션 반짝임 (4프레임)</option>
-      <option value="coin">황금 코인 회전 (4프레임)</option>
-    </select>
     <span>프리셋</span>
     <select id="presetSizeSelect">
       <option value="16">16 x 16</option>
@@ -686,8 +723,7 @@
     <button class="action-btn" id="onionBtn">어니언</button>
     <input type="file" id="importInput" accept="image/*" style="display:none;">
     <button class="action-btn" id="importBtn">불러오기</button>
-    <button class="action-btn primary-btn" id="shareArtBtn">🌐 서버에 공유</button>
-    <button class="action-btn primary-btn" id="exportBtn">PNG 저장</button>
+    <button class="action-btn primary-btn" id="openPublishModalBtn">🌐 작품 내보내기 / 공유</button>
   </div>
 
   <div class="row">
@@ -812,7 +848,7 @@
     <div class="auth-card">
       <div style="text-align:center;">
         <div style="font-size:22px; font-weight:800; color:#fff;">Pixel Studio Pro 계정</div>
-        <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">구글 계정 연동 또는 아이디로 로그인하세요 (관리자 ID: <b>sunnywp82</b>)</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">계정으로 로그인하고 나만의 도트 작품을 만들어보세요</div>
       </div>
 
       <div class="auth-tabs">
@@ -823,7 +859,7 @@
       <div style="display:flex; flex-direction:column; gap:12px;">
         <div>
           <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">아이디 (닉네임)</div>
-          <input type="text" id="authUsername" placeholder="예: sunnywp82" style="width:100%;">
+          <input type="text" id="authUsername" placeholder="닉네임 입력" style="width:100%;">
         </div>
         <div>
           <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">비밀번호</div>
@@ -899,7 +935,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <div>
         <h2 style="font-size:22px; font-weight:800;">🌐 커뮤니티 도트 갤러리</h2>
-        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">관리자(sunnywp82)로 로그인하면 각 게시물 카드에서 삭제·검열(블라인드)·작성자 밴·IP 밴 버튼이 활성화됩니다.</p>
+        <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">유저들이 직접 그리고 공유한 도트 작품을 감상해보세요.</p>
       </div>
       <button class="action-btn primary-btn" onclick="navigateTo('/draw')">+ 새 작품 그리러 가기 (/draw)</button>
     </div>
@@ -907,12 +943,12 @@
   </div>
 </div>
 
-<!-- /admin 뷰 (sunnywp82 전용) -->
+<!-- /admin 뷰 -->
 <div class="view-section" id="viewAdmin">
   <div class="gallery-container">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
       <div>
-        <h2 style="font-size:24px; font-weight:800; color:#fcd34d;">🛡️ sunnywp82 최고 관리자 센터</h2>
+        <h2 style="font-size:24px; font-weight:800; color:#fcd34d;">🛡️ 관리자 센터</h2>
         <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">전체 회원 계정 정지(Ban), IP 영구 차단(IP Ban), 게시물 검열 및 삭제를 통합 관리합니다.</p>
       </div>
       <button class="action-btn" onclick="loadAdminOverview()">🔄 새로고침</button>
@@ -938,7 +974,7 @@
       <div class="panel-box">
         <div class="panel-title">🚫 차단된 IP 목록 (IP Ban List)</div>
         <div class="row">
-          <input type="text" id="manualBanIpInput" placeholder="차단할 IP 입력 (예: 123.45.67.89)" style="flex:1;">
+          <input type="text" id="manualBanIpInput" placeholder="차단할 IP 입력" style="flex:1;">
           <button class="action-btn danger-btn" onclick="adminBanIpManual()">IP 차단</button>
         </div>
         <div id="adminBannedIpList" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;"></div>
@@ -947,14 +983,49 @@
   </div>
 </div>
 
+<!-- 내보내기 및 커뮤니티 공유 전용 모달 창 -->
+<div class="modal-backdrop" id="publishModal">
+  <div class="modal-card" style="width:460px; align-items:stretch;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="font-weight:800; font-size:17px;">📦 작품 내보내기 & 커뮤니티 공유</div>
+      <button class="action-btn" onclick="closePublishModal()">✕ 닫기</button>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">작품 이름</div>
+        <input type="text" id="publishTitleInput" placeholder="작품의 이름을 입력하세요" style="width:100%;">
+      </div>
+      <div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">작품 설명</div>
+        <textarea id="publishDescInput" rows="3" placeholder="작품에 대한 설명이나 제작 의도를 적어주세요" style="width:100%; resize:none;"></textarea>
+      </div>
+
+      <label class="toggle-switch">
+        <div>
+          <div style="font-size:13px; font-weight:700; color:#fff;">다른 사람의 편집 허용</div>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">켜두면 다른 유저가 내 작품을 에디터로 불러와 수정할 수 있습니다</div>
+        </div>
+        <input type="checkbox" id="publishAllowEditCheck">
+      </label>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:6px;">
+      <button class="action-btn primary-btn" style="flex:1; padding:12px;" onclick="submitShareToGallery()">🌐 갤러리에 공유하기</button>
+      <button class="action-btn" style="flex:1; padding:12px;" onclick="downloadPngFromModal()">💾 내 PC에 PNG 저장</button>
+    </div>
+  </div>
+</div>
+
 <!-- 애니메이션 확대 모달 -->
 <div class="modal-backdrop" id="previewModal">
   <div class="modal-card">
     <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-      <div style="font-weight:800; font-size:16px;">애니메이션 크게 보기</div>
+      <div style="font-weight:800; font-size:16px;" id="largeModalTitle">애니메이션 크게 보기</div>
       <button class="action-btn" id="closeModalBtn">✕ 닫기 (ESC)</button>
     </div>
     <canvas id="largePreviewCanvas" width="32" height="32"></canvas>
+    <div id="largeModalDesc" style="font-size:12px; color:var(--text-muted); max-width:380px; text-align:center;"></div>
     <div class="row" style="width:100%;">
       <button class="action-btn primary-btn" id="togglePlayModalBtn" style="min-width:90px;">⏸ 일시정지</button>
       <span>프레임: <b id="modalFrameIndicator" style="color:#fff;">1 / 1</b></span>
@@ -966,21 +1037,25 @@
 
 <!-- 구글 계정 연동 모달 -->
 <div class="modal-backdrop" id="googleModal">
-  <div class="modal-card" style="min-width:380px;">
-    <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+  <div class="modal-card" style="min-width:380px; align-items:stretch;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
       <div style="font-weight:800; font-size:16px;">Google 이메일 계정 연동</div>
       <button class="action-btn" onclick="closeGoogleModal()">✕</button>
     </div>
-    <div style="width:100%; display:flex; flex-direction:column; gap:12px;">
+    <div style="display:flex; flex-direction:column; gap:12px;">
       <div>
         <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Google 이메일 주소</div>
-        <input type="email" id="googleEmailInput" placeholder="sunnywp82@gmail.com" style="width:100%;">
+        <input type="email" id="googleEmailInput" placeholder="example@gmail.com" style="width:100%;">
       </div>
       <div>
-        <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">사용할 닉네임 (sunnywp82 입력 시 관리자 권한 부여)</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">사용할 닉네임</div>
         <input type="text" id="googleNameInput" placeholder="닉네임 입력" style="width:100%;">
       </div>
-      <button class="action-btn primary-btn" style="padding:11px;" onclick="submitGoogleAuth()">Google 계정으로 즉시 연동 로그인</button>
+      <div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">계정 보호 비밀번호 설정</div>
+        <input type="password" id="googlePwInput" placeholder="비밀번호 입력" style="width:100%;">
+      </div>
+      <button class="action-btn primary-btn" style="padding:11px;" onclick="submitGoogleAuth()">Google 계정 연동 완료</button>
     </div>
   </div>
 </div>
@@ -988,7 +1063,14 @@
 <div id="toast">알림</div>
 
 <script>
-const ADMIN_ID = 'sunnywp82';
+/* 우클릭 및 이미지 드래그/복사 원천 차단 */
+window.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('dragstart', e => {
+  if (e.target.tagName === 'CANVAS' || e.target.tagName === 'IMG') {
+    e.preventDefault();
+  }
+});
+
 let size = 32;
 let frames = [];
 let currentFrame = 0;
@@ -1010,8 +1092,11 @@ let draggedFrameIdx = null;
 let isModalOpen = false;
 let isPlayingAnim = true;
 let authMode = 'login';
-let currentUser = JSON.parse(localStorage.getItem('psp_current_user') || 'null');
+let authToken = localStorage.getItem('psp_token') || null;
+let currentUser = null;
 let sharedGallery = [];
+let modalViewingFrames = null;
+let modalViewingSize = 32;
 
 const wrapper = document.getElementById('canvasWrapper');
 const mainCanvas = document.getElementById('mainCanvas');
@@ -1029,8 +1114,14 @@ const largeAnimCtx = largeAnimCanvas.getContext('2d');
 const offCanvas = document.createElement('canvas');
 const offCtx = offCanvas.getContext('2d');
 
+function authHeaders(extra = {}) {
+  const h = { ...extra };
+  if (authToken) h['Authorization'] = `Bearer ${authToken}`;
+  return h;
+}
+
 function isAdmin() {
-  return currentUser && (currentUser.username === ADMIN_ID || currentUser.role === 'admin');
+  return Boolean(currentUser && currentUser.role === 'admin' && currentUser.username === 'sunnywp82');
 }
 
 function showToast(msg) {
@@ -1041,6 +1132,29 @@ function showToast(msg) {
   t._timer = setTimeout(() => { t.classList.remove('show'); }, 2200);
 }
 
+/* 서버 토큰 기반 세션 검증 (DevTools 조작 원천 차단) */
+async function verifySessionFromServer() {
+  if (!authToken) {
+    currentUser = null;
+    updateUserUI();
+    return;
+  }
+  try {
+    const res = await fetch('/api/me', { headers: authHeaders() });
+    if (!res.ok) {
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem('psp_token');
+    } else {
+      const data = await res.json();
+      currentUser = data.user;
+    }
+  } catch (e) {
+    currentUser = null;
+  }
+  updateUserUI();
+}
+
 function navigateTo(path) {
   try {
     window.history.pushState({ path }, '', path);
@@ -1048,7 +1162,8 @@ function navigateTo(path) {
   applyRoute(path);
 }
 
-function applyRoute(path) {
+async function applyRoute(path) {
+  await verifySessionFromServer();
   const cleanPath = (path || window.location.pathname).replace('#', '') || '/draw';
   document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -1070,8 +1185,8 @@ function applyRoute(path) {
     renderProfileView();
   } else if (cleanPath === '/admin') {
     if (!isAdmin()) {
-      showToast('관리자(sunnywp82) 전용 페이지입니다');
-      return navigateTo('/login');
+      showToast('접근 권한이 없습니다');
+      return navigateTo('/draw');
     }
     document.getElementById('viewAdmin').classList.add('active');
     document.getElementById('tabAdmin').classList.add('active');
@@ -1137,10 +1252,11 @@ async function handleAuthSubmit() {
       showToast(data.error || '로그인 실패');
       return;
     }
+    authToken = data.token;
     currentUser = data.user;
-    localStorage.setItem('psp_current_user', JSON.stringify(currentUser));
+    localStorage.setItem('psp_token', authToken);
     updateUserUI();
-    showToast(isAdmin() ? '👑 관리자(sunnywp82) 권한으로 로그인되었습니다!' : `환영합니다, ${currentUser.username}님!`);
+    showToast(`환영합니다, ${currentUser.username}님!`);
     navigateTo('/draw');
   } catch (e) {
     showToast('서버와 통신할 수 없습니다');
@@ -1158,6 +1274,7 @@ function closeGoogleModal() {
 async function submitGoogleAuth() {
   const email = document.getElementById('googleEmailInput').value.trim();
   const username = document.getElementById('googleNameInput').value.trim();
+  const password = document.getElementById('googlePwInput').value.trim();
   if (!email || !email.includes('@')) {
     showToast('유효한 Google 이메일 주소를 입력해주세요');
     return;
@@ -1166,18 +1283,19 @@ async function submitGoogleAuth() {
     const res = await fetch('/api/google-auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, username })
+      body: JSON.stringify({ email, username, password })
     });
     const data = await res.json();
     if (!res.ok) {
       showToast(data.error || '구글 연동 실패');
       return;
     }
+    authToken = data.token;
     currentUser = data.user;
-    localStorage.setItem('psp_current_user', JSON.stringify(currentUser));
+    localStorage.setItem('psp_token', authToken);
     updateUserUI();
     closeGoogleModal();
-    showToast(`Google 계정(${currentUser.email})으로 연동되었습니다!`);
+    showToast(`Google 계정(${currentUser.email})으로 로그인되었습니다!`);
     navigateTo('/draw');
   } catch (e) {
     showToast('서버 오류가 발생했습니다');
@@ -1214,8 +1332,8 @@ async function saveProfileChanges() {
   try {
     const res = await fetch('/api/profile', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: currentUser.username, email, bio, avatarColor, newPassword })
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ email, bio, avatarColor, newPassword })
     });
     const data = await res.json();
     if (!res.ok) {
@@ -1223,30 +1341,279 @@ async function saveProfileChanges() {
       return;
     }
     currentUser = data.user;
-    localStorage.setItem('psp_current_user', JSON.stringify(currentUser));
     updateUserUI();
     renderProfileView();
-    showToast('프로필과 이메일 연동 정보가 저장되었습니다!');
+    showToast('프로필 정보가 안전하게 저장되었습니다!');
   } catch (e) {
     showToast('서버 통신 실패');
   }
 }
 
 function handleLogout() {
+  authToken = null;
   currentUser = null;
-  localStorage.removeItem('psp_current_user');
+  localStorage.removeItem('psp_token');
   updateUserUI();
   showToast('로그아웃되었습니다');
   navigateTo('/login');
 }
 
-/* ---------------- 관리자 대시보드 (sunnywp82 전용) ---------------- */
+/* ---------------- 내보내기 & 공유 모달 ---------------- */
+document.getElementById('openPublishModalBtn').onclick = () => {
+  document.getElementById('publishTitleInput').value = currentUser ? `${currentUser.username}의 도트 작품` : '나만의 도트 작품';
+  document.getElementById('publishDescInput').value = '';
+  document.getElementById('publishAllowEditCheck').checked = false;
+  document.getElementById('publishModal').classList.add('open');
+};
+
+function closePublishModal() {
+  document.getElementById('publishModal').classList.remove('open');
+}
+
+function downloadPngFromModal() {
+  const rawTitle = document.getElementById('publishTitleInput').value.trim() || 'pixel-art';
+  const out = document.createElement('canvas');
+  out.width = size * frames.length;
+  out.height = size;
+  const outCtx = out.getContext('2d');
+  const temp = document.createElement('canvas');
+  temp.width = size; temp.height = size;
+  frames.forEach((_, idx) => {
+    compositeFrame(idx, temp.getContext('2d'));
+    outCtx.drawImage(temp, idx * size, 0);
+  });
+  const a = document.createElement('a');
+  a.download = `${rawTitle}-${size}x${size}.png`;
+  a.href = out.toDataURL();
+  a.click();
+  closePublishModal();
+  showToast('PNG 파일로 저장되었습니다');
+}
+
+async function submitShareToGallery() {
+  if (!currentUser || !authToken) {
+    closePublishModal();
+    showToast('갤러리에 공유하려면 먼저 로그인해주세요');
+    return navigateTo('/login');
+  }
+  const title = document.getElementById('publishTitleInput').value.trim();
+  const description = document.getElementById('publishDescInput').value.trim();
+  const allowEdit = document.getElementById('publishAllowEditCheck').checked;
+
+  if (!title) {
+    return showToast('작품 이름을 입력해주세요');
+  }
+
+  const payload = {
+    title,
+    description,
+    allowEdit,
+    size,
+    fps,
+    frames: frames.map(f => f.map(l => Array.from(l)))
+  };
+
+  try {
+    const res = await fetch('/api/gallery', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) return showToast(data.error || '공유 실패');
+    closePublishModal();
+    showToast('커뮤니티 갤러리에 작품이 등록되었습니다!');
+    navigateTo('/gallery');
+  } catch (e) {
+    showToast('공유 중 오류가 발생했습니다');
+  }
+}
+
+/* ---------------- 갤러리 렌더링 (좋아요 토글 & 편집 권한 제어) ---------------- */
+async function fetchGalleryFromServer() {
+  try {
+    const res = await fetch('/api/gallery', { headers: authHeaders() });
+    const data = await res.json();
+    sharedGallery = (data.gallery || []).map(item => ({
+      ...item,
+      frames: (item.frames || []).map(f => f.map(l => new Uint8ClampedArray(l)))
+    }));
+  } catch (e) {
+    sharedGallery = [];
+  }
+  renderGallery();
+}
+
+function renderGallery() {
+  const grid = document.getElementById('galleryGrid');
+  grid.innerHTML = '';
+
+  if (sharedGallery.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);">아직 등록된 작품이 없습니다. 첫 번째 도트 작품을 그려서 공유해보세요!</div>`;
+    return;
+  }
+
+  sharedGallery.forEach((art, idx) => {
+    const card = document.createElement('div');
+    card.className = 'art-card' + (art.censored ? ' censored' : '');
+
+    const wrap = document.createElement('div');
+    wrap.className = 'art-canvas-wrap';
+    const c = document.createElement('canvas');
+    c.width = art.size;
+    c.height = art.size;
+    if (art.frames && art.frames.length > 0) {
+      drawArtFrameToCanvas(art, 0, c.getContext('2d'));
+    }
+    wrap.appendChild(c);
+
+    const shield = document.createElement('div');
+    shield.className = 'art-shield';
+    shield.title = '클릭하여 크게 감상하기';
+    shield.onclick = () => {
+      if (art.censored && !isAdmin()) {
+        return showToast('검열(블라인드) 처리된 게시물입니다');
+      }
+      openGalleryArtPreview(art);
+    };
+    wrap.appendChild(shield);
+
+    if (art.censored) {
+      const ov = document.createElement('div');
+      ov.className = 'censor-overlay';
+      ov.innerHTML = '🔞 블라인드 처리된 게시물';
+      wrap.appendChild(ov);
+    }
+
+    const roleTag = art.authorRole === 'admin' ? '<span class="admin-badge">ADMIN</span>' : '';
+    const editBadge = art.allowEdit
+      ? '<span style="font-size:10px;color:#34d399;background:rgba(16,185,129,0.15);padding:2px 6px;border-radius:4px;">편집 허용</span>'
+      : '<span style="font-size:10px;color:#9ca3af;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;">🔒 편집 불가</span>';
+
+    const info = document.createElement('div');
+    info.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+        <div style="font-weight:700; font-size:14px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${art.censored && !isAdmin() ? '🔒 [블라인드 게시물]' : art.title}</div>
+        ${editBadge}
+      </div>
+      ${art.description && (!art.censored || isAdmin()) ? `<div style="font-size:12px; color:#d1d5db; margin-top:4px; line-height:1.4;">${art.description}</div>` : ''}
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted); margin-top:6px;">
+        <span class="avatar-circle" style="background:${art.authorAvatarColor || '#6366f1'};width:18px;height:18px;font-size:9px;">${art.author[0].toUpperCase()}</span>
+        <span>@${art.author} ${roleTag}</span>
+      </div>
+    `;
+
+    const actions = document.createElement('div');
+    actions.className = 'row';
+
+    const likeBtn = document.createElement('button');
+    likeBtn.className = 'action-btn' + (art.likedByMe ? ' liked-btn' : '');
+    likeBtn.textContent = `❤️ ${art.likes}`;
+    likeBtn.onclick = async () => {
+      if (!currentUser || !authToken) {
+        showToast('좋아요를 누르려면 로그인해주세요');
+        return navigateTo('/login');
+      }
+      try {
+        const res = await fetch(`/api/gallery/${art.id}/like`, {
+          method: 'POST',
+          headers: authHeaders()
+        });
+        const data = await res.json();
+        if (!res.ok) return showToast(data.error || '오류 발생');
+        art.likes = data.likes;
+        art.likedByMe = data.liked;
+        likeBtn.textContent = `❤️ ${art.likes}`;
+        likeBtn.classList.toggle('liked-btn', art.likedByMe);
+      } catch (e) {}
+    };
+
+    const canEdit = isAdmin() || (currentUser && currentUser.username === art.author) || art.allowEdit;
+    const editBtn = document.createElement('button');
+    editBtn.className = 'action-btn' + (canEdit ? ' primary-btn' : '');
+    editBtn.textContent = canEdit ? '🎨 편집하기' : '🔒 편집 잠김';
+    editBtn.disabled = !canEdit;
+    editBtn.onclick = () => {
+      if (!canEdit) return;
+      loadArtFromGallery(idx);
+    };
+
+    actions.appendChild(likeBtn);
+    actions.appendChild(editBtn);
+
+    card.appendChild(wrap);
+    card.appendChild(info);
+    card.appendChild(actions);
+
+    if (isAdmin()) {
+      const modBar = document.createElement('div');
+      modBar.style.display = 'grid';
+      modBar.style.gridTemplateColumns = '1fr 1fr';
+      modBar.style.gap = '6px';
+      modBar.style.paddingTop = '8px';
+      modBar.style.borderTop = '1px solid rgba(245, 158, 11, 0.3)';
+      modBar.innerHTML = `
+        <button class="action-btn warn-btn" style="font-size:11px;padding:5px;" onclick="adminToggleCensorArt('${art.id}')">${art.censored ? '검열 해제' : '🙈 검열'}</button>
+        <button class="action-btn danger-btn" style="font-size:11px;padding:5px;" onclick="adminDeleteArt('${art.id}')">🗑️ 삭제</button>
+        ${art.author !== 'sunnywp82' ? `<button class="action-btn danger-btn" style="font-size:11px;padding:5px;" onclick="adminToggleUserBan('${art.author}', true)">🚫 유저 밴</button>` : ''}
+        ${art.ip && art.author !== 'sunnywp82' ? `<button class="action-btn danger-btn" style="font-size:11px;padding:5px;" onclick="adminBanIp('${art.ip}', 'ban')">🌐 IP 밴</button>` : ''}
+      `;
+      card.appendChild(modBar);
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+function drawArtFrameToCanvas(art, fIdx, ctx) {
+  ctx.clearRect(0, 0, art.size, art.size);
+  if (!art.frames || !art.frames[fIdx]) return;
+  const temp = document.createElement('canvas');
+  temp.width = art.size;
+  temp.height = art.size;
+  const tCtx = temp.getContext('2d');
+  art.frames[fIdx].forEach(layerBuf => {
+    tCtx.putImageData(new ImageData(new Uint8ClampedArray(layerBuf), art.size, art.size), 0, 0);
+    ctx.drawImage(temp, 0, 0);
+  });
+}
+
+function openGalleryArtPreview(art) {
+  if (!art.frames || art.frames.length === 0) return;
+  modalViewingFrames = art.frames;
+  modalViewingSize = art.size;
+  isModalOpen = true;
+  largeAnimCanvas.width = art.size;
+  largeAnimCanvas.height = art.size;
+  document.getElementById('largeModalTitle').textContent = `${art.title} (@${art.author})`;
+  document.getElementById('largeModalDesc').textContent = art.description || '';
+  document.getElementById('previewModal').classList.add('open');
+}
+
+function loadArtFromGallery(idx) {
+  const art = sharedGallery[idx];
+  if (!art || !art.frames || art.frames.length === 0) return;
+  saveHistory();
+  size = art.size;
+  [mainCanvas, previewLayerCanvas, onionCanvas, animCanvas, largeAnimCanvas, offCanvas].forEach(c => {
+    c.width = size; c.height = size;
+  });
+  document.getElementById('customSizeInput').value = size;
+  frames = art.frames.map(f => f.map(l => new Uint8ClampedArray(l)));
+  layerNames = frames[0].map((_, i) => `레이어 ${i + 1}`);
+  currentFrame = 0;
+  currentLayer = 0;
+  selection = null;
+  renderAll();
+  navigateTo('/draw');
+  showToast(`'${art.title}' 작품을 에디터로 불러왔습니다`);
+}
+
+/* ---------------- 관리자 대시보드 ---------------- */
 async function loadAdminOverview() {
   if (!isAdmin()) return;
   try {
-    const res = await fetch('/api/admin/overview', {
-      headers: { 'x-admin-user': currentUser.username }
-    });
+    const res = await fetch('/api/admin/overview', { headers: authHeaders() });
     const data = await res.json();
     if (!res.ok) return showToast(data.error || '권한 오류');
 
@@ -1263,7 +1630,7 @@ async function loadAdminOverview() {
         <td style="font-family:monospace; color:#a5b4fc;">${u.ip || '-'}</td>
         <td>${u.banned ? '<span style="color:#ef4444;font-weight:700;">정지됨(Banned)</span>' : '<span style="color:#34d399;">정상</span>'}</td>
         <td style="display:flex; gap:6px;">
-          ${u.username !== ADMIN_ID ? `
+          ${u.username !== 'sunnywp82' ? `
             <button class="action-btn ${u.banned ? '' : 'danger-btn'}" onclick="adminToggleUserBan('${u.username}', ${!u.banned})">
               ${u.banned ? '정지 해제' : '계정 밴'}
             </button>
@@ -1300,17 +1667,17 @@ async function loadAdminOverview() {
 async function adminToggleUserBan(targetUsername, ban) {
   await fetch('/api/admin/ban-user', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-user': currentUser.username },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ targetUsername, ban })
   });
-  showToast(`${targetUsername} 계정을 ${ban ? '영구 정지' : '정지 해제'}했습니다`);
+  showToast(`${targetUsername} 계정을 ${ban ? '정지' : '정지 해제'}했습니다`);
   loadAdminOverview();
 }
 
 async function adminBanIp(ip, action) {
   await fetch('/api/admin/ban-ip', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-user': currentUser.username },
+    headers: authHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify({ ip, action })
   });
   showToast(`IP(${ip}) ${action === 'unban' ? '차단 해제' : '영구 차단'} 완료`);
@@ -1327,18 +1694,18 @@ function adminBanIpManual() {
 async function adminDeleteArt(artId) {
   await fetch(`/api/admin/gallery/${artId}`, {
     method: 'DELETE',
-    headers: { 'x-admin-user': currentUser.username }
+    headers: authHeaders()
   });
-  showToast('관리자 권한으로 게시물을 삭제했습니다');
+  showToast('게시물을 삭제했습니다');
   fetchGalleryFromServer();
 }
 
 async function adminToggleCensorArt(artId) {
   await fetch(`/api/admin/gallery/${artId}/censor`, {
     method: 'POST',
-    headers: { 'x-admin-user': currentUser.username }
+    headers: authHeaders()
   });
-  showToast('게시물 검열(블라인드) 상태를 변경했습니다');
+  showToast('게시물 검열 상태를 변경했습니다');
   fetchGalleryFromServer();
 }
 
@@ -1386,313 +1753,13 @@ window.addEventListener('mousedown', e => {
   }
 });
 
-/* ---------------- 기본 도트 아트워크 생성기 ---------------- */
-function generateBuiltInFrames(type, artSize = 32) {
-  const frameList = [];
-  for (let f = 0; f < 4; f++) {
-    const buf = new Uint8ClampedArray(artSize * artSize * 4);
-    const put = (x, y, r, g, b, a = 255) => {
-      if (x < 0 || x >= artSize || y < 0 || y >= artSize) return;
-      const i = (y * artSize + x) * 4;
-      buf[i] = r; buf[i+1] = g; buf[i+2] = b; buf[i+3] = a;
-    };
-
-    if (type === 'slime') {
-      const squash = [0, 2, 0, -1][f];
-      const jumpY = [0, 1, -3, -1][f];
-      const baseCy = 20 + jumpY;
-      const rx = 10 + squash;
-      const ry = 8 - squash;
-      for (let x = 8; x < 24; x++) {
-        if (Math.abs(x - 16) < 9 - Math.max(0, -jumpY)) put(x, 28, 15, 23, 42, 130);
-      }
-      for (let y = 4; y < 30; y++) {
-        for (let x = 2; x < 30; x++) {
-          const dx = (x - 16) / rx, dy = (y - baseCy) / ry;
-          const dist = dx * dx + dy * dy;
-          if (y > baseCy && Math.abs(x - 16) <= rx && y <= baseCy + ry * 0.65) {
-            const edge = Math.abs(x - 16) === rx || y === Math.floor(baseCy + ry * 0.65);
-            if (edge) put(x, y, 30, 58, 138); else put(x, y, 59, 130, 246);
-          } else if (dist <= 1.0) {
-            if (dist > 0.82) put(x, y, 30, 58, 138);
-            else if (dx + dy < -0.45) put(x, y, 147, 197, 253);
-            else if (dx + dy > 0.5) put(x, y, 37, 99, 235);
-            else put(x, y, 59, 130, 246);
-          }
-        }
-      }
-      const crownY = Math.floor(baseCy - ry - 3);
-      for (let cx = 12; cx <= 20; cx++) {
-        put(cx, crownY + 2, 234, 179, 8);
-        put(cx, crownY + 1, 250, 204, 21);
-        if (cx === 12 || cx === 16 || cx === 20) put(cx, crownY, 254, 240, 138);
-      }
-      put(16, crownY + 1, 239, 68, 68);
-      const eyeY = baseCy - 1;
-      put(12, eyeY, 15, 23, 42); put(12, eyeY + 1, 15, 23, 42);
-      put(19, eyeY, 15, 23, 42); put(19, eyeY + 1, 15, 23, 42);
-      put(11, eyeY + 2, 244, 114, 182); put(20, eyeY + 2, 244, 114, 182);
-    } else if (type === 'sword') {
-      const floatY = [0, -1, -2, -1][f];
-      for (let i = 0; i < 16; i++) {
-        const bx = 8 + i, by = 23 - i + floatY;
-        put(bx, by, 226, 232, 240);
-        put(bx - 1, by, 148, 163, 184);
-        put(bx, by - 1, 248, 250, 252);
-        put(bx - 2, by - 1, 51, 65, 85);
-        put(bx + 1, by + 1, 51, 65, 85);
-      }
-      for (let g = -3; g <= 3; g++) {
-        put(9 + g, 22 + g + floatY, 250, 204, 21);
-        put(8 + g, 23 + g + floatY, 202, 138, 4);
-      }
-      put(6, 25 + floatY, 120, 53, 15);
-      put(5, 26 + floatY, 146, 64, 14);
-      put(4, 27 + floatY, 250, 204, 21);
-      const flames = [[[14,12],[18,8],[22,6],[11,16]],[[13,11],[19,7],[23,5],[10,15]],[[15,10],[17,6],[21,4],[12,14]],[[14,13],[20,8],[24,6],[11,15]]][f];
-      flames.forEach(([fx, fy]) => {
-        put(fx, fy + floatY, 249, 115, 22);
-        put(fx, fy - 1 + floatY, 253, 224, 71);
-        put(fx + 1, fy + floatY, 239, 68, 68);
-      });
-    } else if (type === 'potion') {
-      const wave = [0, 1, 0, -1][f];
-      for (let x = 13; x <= 18; x++) {
-        put(x, 6, 180, 83, 9); put(x, 7, 146, 64, 14);
-        put(x, 8, 203, 213, 225); put(x, 9, 148, 163, 184);
-      }
-      for (let y = 10; y <= 26; y++) {
-        for (let x = 8; x <= 23; x++) {
-          const dx = (x - 15.5) / 7.5, dy = (y - 18.5) / 8.0, d = dx * dx + dy * dy;
-          if (d <= 1.0) {
-            if (d > 0.8) put(x, y, 226, 232, 240);
-            else if (y > 14 + Math.sin(x * 0.5 + f) * 1.2 + wave) {
-              if (dx + dy < -0.2) put(x, y, 251, 113, 133); else put(x, y, 225, 29, 72);
-            } else put(x, y, 56, 189, 248, 70);
-          }
-        }
-      }
-      put(11, 15, 255, 255, 255); put(11, 16, 255, 255, 255);
-    } else if (type === 'coin') {
-      const rx = [9, 6, 2, 6][f];
-      for (let y = 6; y <= 25; y++) {
-        for (let x = 16 - rx; x <= 16 + rx; x++) {
-          const dx = (x - 16) / (rx || 1), dy = (y - 15.5) / 9.5, d = dx * dx + dy * dy;
-          if (d <= 1.0) {
-            if (d > 0.78) put(x, y, 180, 83, 9);
-            else if (dx < -0.3) put(x, y, 254, 240, 138);
-            else put(x, y, 234, 179, 8);
-          }
-        }
-      }
-    }
-    frameList.push([buf]);
-  }
-  return frameList;
-}
-
-function loadTemplateArt(type, notify = true) {
-  if (!type) return;
-  saveHistory();
-  size = 32;
-  [mainCanvas, previewLayerCanvas, onionCanvas, animCanvas, largeAnimCanvas, offCanvas].forEach(c => {
-    c.width = size; c.height = size;
-  });
-  document.getElementById('customSizeInput').value = 32;
-  document.getElementById('presetSizeSelect').value = '32';
-  layerNames = ['레이어 1'];
-  frames = generateBuiltInFrames(type, 32);
-  currentFrame = 0;
-  currentLayer = 0;
-  selection = null;
-  renderAll();
-  if (notify) showToast('아트워크 애니메이션을 불러왔습니다!');
-}
-
-document.getElementById('templateSelect').onchange = e => {
-  loadTemplateArt(e.target.value);
-  e.target.value = '';
-};
-
-function getBuiltInGalleryItems() {
-  return [
-    { id: 'built-1', title: '바운싱 킹 슬라임', author: 'sunnywp82', authorRole: 'admin', authorAvatarColor: '#f59e0b', likes: 128, censored: false, size: 32, fps: 6, frames: generateBuiltInFrames('slime', 32) },
-    { id: 'built-2', title: '타오르는 마법검', author: 'DotForge', authorRole: 'user', authorAvatarColor: '#6366f1', likes: 94, censored: false, size: 32, fps: 8, frames: generateBuiltInFrames('sword', 32) },
-    { id: 'built-3', title: '회복 포션 반짝임', author: 'Alchemist', authorRole: 'user', authorAvatarColor: '#ec4899', likes: 76, censored: false, size: 32, fps: 6, frames: generateBuiltInFrames('potion', 32) },
-    { id: 'built-4', title: '황금 코인 스핀', author: 'RetroGold', authorRole: 'user', authorAvatarColor: '#10b981', likes: 63, censored: false, size: 32, fps: 8, frames: generateBuiltInFrames('coin', 32) }
-  ];
-}
-
-async function fetchGalleryFromServer() {
-  const builtIns = getBuiltInGalleryItems();
-  try {
-    const res = await fetch('/api/gallery');
-    const data = await res.json();
-    const serverItems = (data.gallery || []).map(item => ({
-      ...item,
-      frames: item.frames.map(f => f.map(l => new Uint8ClampedArray(l)))
-    }));
-    sharedGallery = [...serverItems, ...builtIns];
-  } catch (e) {
-    sharedGallery = builtIns;
-  }
-  renderGallery();
-}
-
-document.getElementById('shareArtBtn').onclick = async () => {
-  if (!currentUser) {
-    showToast('작품을 공유하려면 먼저 로그인해주세요 (/login)');
-    navigateTo('/login');
-    return;
-  }
-  const title = prompt('서버 갤러리에 공유할 작품 제목을 입력하세요:', `${currentUser.username}의 도트 작품`);
-  if (!title) return;
-
-  const payload = {
-    title: title.trim(),
-    author: currentUser.username,
-    size,
-    fps,
-    frames: frames.map(f => f.map(l => Array.from(l)))
-  };
-
-  try {
-    const res = await fetch('/api/gallery', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok) return showToast(data.error || '공유 실패');
-    showToast('서버 갤러리에 작품이 공유되었습니다!');
-    navigateTo('/gallery');
-  } catch (e) {
-    showToast('공유 중 오류가 발생했습니다');
-  }
-};
-
-function renderGallery() {
-  const grid = document.getElementById('galleryGrid');
-  grid.innerHTML = '';
-  sharedGallery.forEach((art, idx) => {
-    const card = document.createElement('div');
-    card.className = 'art-card' + (art.censored ? ' censored' : '');
-
-    const wrap = document.createElement('div');
-    wrap.className = 'art-canvas-wrap';
-    const c = document.createElement('canvas');
-    c.width = art.size;
-    c.height = art.size;
-    drawArtFrameToCanvas(art, 0, c.getContext('2d'));
-    c.onclick = () => {
-      if (art.censored && !isAdmin()) {
-        return showToast('관리자에 의해 검열(블라인드) 처리된 작품입니다');
-      }
-      loadArtFromGallery(idx);
-    };
-    wrap.appendChild(c);
-
-    if (art.censored) {
-      const ov = document.createElement('div');
-      ov.className = 'censor-overlay';
-      ov.innerHTML = '🔞 관리자에 의해 검열됨<br><span style="font-size:10px;color:#d1d5db;margin-top:4px;">(블라인드 처리된 게시물)</span>';
-      wrap.appendChild(ov);
-    }
-
-    const roleTag = (art.author === ADMIN_ID || art.authorRole === 'admin') ? '<span class="admin-badge">ADMIN</span>' : '';
-    const info = document.createElement('div');
-    info.innerHTML = `
-      <div style="font-weight:700; font-size:14px; color:#fff;">${art.censored && !isAdmin() ? '🔒 [검열된 게시물]' : art.title}</div>
-      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-muted); margin-top:4px;">
-        <span class="avatar-circle" style="background:${art.authorAvatarColor || '#6366f1'};width:18px;height:18px;font-size:9px;">${art.author[0].toUpperCase()}</span>
-        <span>@${art.author} ${roleTag}</span>
-      </div>
-    `;
-
-    const actions = document.createElement('div');
-    actions.className = 'row';
-
-    const likeBtn = document.createElement('button');
-    likeBtn.className = 'action-btn';
-    likeBtn.textContent = `❤️ ${art.likes}`;
-    likeBtn.onclick = () => {
-      art.likes++;
-      likeBtn.textContent = `❤️ ${art.likes}`;
-      if (!art.id.startsWith('built-')) {
-        fetch(`/api/gallery/${art.id}/like`, { method: 'POST' }).catch(() => {});
-      }
-    };
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'action-btn primary-btn';
-    editBtn.textContent = '🎨 편집';
-    editBtn.onclick = () => {
-      if (art.censored && !isAdmin()) return showToast('검열된 게시물은 불러올 수 없습니다');
-      loadArtFromGallery(idx);
-    };
-
-    actions.appendChild(likeBtn);
-    actions.appendChild(editBtn);
-
-    card.appendChild(wrap);
-    card.appendChild(info);
-    card.appendChild(actions);
-
-    if (isAdmin() && !art.id.startsWith('built-')) {
-      const modBar = document.createElement('div');
-      modBar.style.display = 'grid';
-      modBar.style.gridTemplateColumns = '1fr 1fr';
-      modBar.style.gap = '6px';
-      modBar.style.paddingTop = '8px';
-      modBar.style.borderTop = '1px solid rgba(245, 158, 11, 0.3)';
-      modBar.innerHTML = `
-        <button class="action-btn warn-btn" style="font-size:11px;padding:5px;" onclick="adminToggleCensorArt('${art.id}')">${art.censored ? '검열 해제' : '🙈 검열'}</button>
-        <button class="action-btn danger-btn" style="font-size:11px;padding:5px;" onclick="adminDeleteArt('${art.id}')">🗑️ 삭제</button>
-        ${art.author !== ADMIN_ID ? `<button class="action-btn danger-btn" style="font-size:11px;padding:5px;" onclick="adminToggleUserBan('${art.author}', true)">🚫 유저 밴</button>` : ''}
-        ${art.ip && art.author !== ADMIN_ID ? `<button class="action-btn danger-btn" style="font-size:11px;padding:5px;" onclick="adminBanIp('${art.ip}', 'ban')">🌐 IP 밴</button>` : ''}
-      `;
-      card.appendChild(modBar);
-    }
-
-    grid.appendChild(card);
-  });
-}
-
-function drawArtFrameToCanvas(art, fIdx, ctx) {
-  ctx.clearRect(0, 0, art.size, art.size);
-  const temp = document.createElement('canvas');
-  temp.width = art.size;
-  temp.height = art.size;
-  const tCtx = temp.getContext('2d');
-  art.frames[fIdx].forEach(layerBuf => {
-    tCtx.putImageData(new ImageData(new Uint8ClampedArray(layerBuf), art.size, art.size), 0, 0);
-    ctx.drawImage(temp, 0, 0);
-  });
-}
-
-function loadArtFromGallery(idx) {
-  const art = sharedGallery[idx];
-  if (!art) return;
-  saveHistory();
-  size = art.size;
-  [mainCanvas, previewLayerCanvas, onionCanvas, animCanvas, largeAnimCanvas, offCanvas].forEach(c => {
-    c.width = size; c.height = size;
-  });
-  document.getElementById('customSizeInput').value = size;
-  frames = art.frames.map(f => f.map(l => new Uint8ClampedArray(l)));
-  layerNames = frames[0].map((_, i) => `레이어 ${i + 1}`);
-  currentFrame = 0;
-  currentLayer = 0;
-  selection = null;
-  renderAll();
-  navigateTo('/draw');
-  showToast(`'${art.title}' 작품을 에디터로 불러왔습니다`);
-}
-
 function openPreviewModal() {
+  modalViewingFrames = null;
   isModalOpen = true;
   largeAnimCanvas.width = size;
   largeAnimCanvas.height = size;
+  document.getElementById('largeModalTitle').textContent = '애니메이션 크게 보기';
+  document.getElementById('largeModalDesc').textContent = '';
   document.getElementById('modalFpsRange').value = fps;
   document.getElementById('modalFpsVal').textContent = fps;
   document.getElementById('previewModal').classList.add('open');
@@ -1700,6 +1767,7 @@ function openPreviewModal() {
 
 function closePreviewModal() {
   isModalOpen = false;
+  modalViewingFrames = null;
   document.getElementById('previewModal').classList.remove('open');
 }
 
@@ -2092,8 +2160,6 @@ function getCoords(e) {
   return [Math.max(0, Math.min(size - 1, x)), Math.max(0, Math.min(size - 1, y))];
 }
 
-wrapper.oncontextmenu = e => e.preventDefault();
-
 wrapper.addEventListener('mousedown', e => {
   const [x, y] = getCoords(e);
   isDrawing = true;
@@ -2203,7 +2269,7 @@ window.addEventListener('mouseup', () => {
 });
 
 window.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
   if (e.key === 'Escape') {
     if (isModalOpen) closePreviewModal();
     else clearSelection(true);
@@ -2503,23 +2569,6 @@ document.getElementById('importInput').onchange = e => {
   img.src = url;
 };
 
-document.getElementById('exportBtn').onclick = () => {
-  const out = document.createElement('canvas');
-  out.width = size * frames.length;
-  out.height = size;
-  const outCtx = out.getContext('2d');
-  const temp = document.createElement('canvas');
-  temp.width = size; temp.height = size;
-  frames.forEach((_, idx) => {
-    compositeFrame(idx, temp.getContext('2d'));
-    outCtx.drawImage(temp, idx * size, 0);
-  });
-  const a = document.createElement('a');
-  a.download = `pixel-sprite-${size}x${size}.png`;
-  a.href = out.toDataURL();
-  a.click();
-};
-
 let animTick = 0;
 let fps = 6;
 document.getElementById('fpsRange').oninput = e => {
@@ -2533,11 +2582,17 @@ let lastAnimTime = 0;
 let lastMarchTime = 0;
 function animLoop(ts) {
   if (isPlayingAnim && ts - lastAnimTime > 1000 / fps) {
-    animTick = (animTick + 1) % frames.length;
+    animTick = (animTick + 1) % Math.max(1, frames.length);
     compositeFrame(animTick, animCtx);
     if (isModalOpen) {
-      compositeFrame(animTick, largeAnimCtx);
-      document.getElementById('modalFrameIndicator').textContent = `${animTick + 1} / ${frames.length}`;
+      if (modalViewingFrames && modalViewingFrames.length > 0) {
+        const mIdx = animTick % modalViewingFrames.length;
+        drawArtFrameToCanvas({ size: modalViewingSize, frames: modalViewingFrames }, mIdx, largeAnimCtx);
+        document.getElementById('modalFrameIndicator').textContent = `${mIdx + 1} / ${modalViewingFrames.length}`;
+      } else {
+        compositeFrame(animTick, largeAnimCtx);
+        document.getElementById('modalFrameIndicator').textContent = `${animTick + 1} / ${frames.length}`;
+      }
     }
     lastAnimTime = ts;
   }
@@ -2549,8 +2604,7 @@ function animLoop(ts) {
   requestAnimationFrame(animLoop);
 }
 
-updateUserUI();
-loadTemplateArt('slime', false);
+init(32);
 applyRoute(window.location.pathname);
 requestAnimationFrame(animLoop);
 </script>
